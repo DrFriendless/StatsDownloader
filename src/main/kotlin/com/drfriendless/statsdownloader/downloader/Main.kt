@@ -22,18 +22,26 @@ class Main {
             if (!config.resultDir.exists()) {
                 logger.info("Creating results directory: ${config.resultDir}")
             }
-            initDatabase()
+            initDatabaseConnection()
             val finishTime = System.currentTimeMillis() + SECONDS_BETWEEN_POPULATES * 1000L
-            // TODO - add OR THERE IS NOTHING TO DO
+            val tasks = buildTaskList(config)
             while (System.currentTimeMillis() < finishTime) {
-                // TODO
+                if (tasks.isEmpty()) break
+                val task = tasks.removeAt(0)
+                task.execute()
             }
             // TODO store record to database.
             logger.info(dr.toString())
         }
     }
 
-    fun initDatabase() {
-        // TODO
+    fun initDatabaseConnection() {
+        // TODO - connect to the DB
+    }
+
+    fun buildTaskList(config: Config): MutableList<Task> {
+        val result = mutableListOf<Task>()
+        result.add(CheckUsersTask(config))
+        return result
     }
 }
