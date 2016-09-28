@@ -1,4 +1,4 @@
-package com.drfriendless.statsdownloader
+package com.drfriendless.statsdownloader.downloader
 
 import java.text.MessageFormat
 import java.util.*
@@ -29,15 +29,26 @@ class DownloaderRecord {
 
     fun failure() = failures++
 
-    fun wait(howlong: Int) { waitTime += howlong }
+    fun wait(howlong: Int) {
+        waitTime += howlong
+    }
 
-    fun pause(howlong: Int) { pauseTime += howlong }
+    fun pause(howlong: Int) {
+        pauseTime += howlong
+    }
 
-    fun processFiles(howmany: Int) { filesProcessed += howmany }
+    fun processFiles(howmany: Int) {
+        filesProcessed += howmany
+    }
 
     private val TIME_FORMAT = "{0,date,%Y-%m-%d %H:%M:%S}"
 
     private fun f(d: Date?) = if (d == null) throw RuntimeException() else MessageFormat.format(TIME_FORMAT, d)
 
     fun toSQL() = "insert into downloader (starttime, endtime, filesprocessed, waittime, pausetime, failures, users, games) values ('${f(startTime)}', '${f(endTime)}', $filesProcessed, $waitTime, $pauseTime, $failures, $users, $games)"
+
+    override fun toString(): String {
+        return "From $startTime to $endTime, $users users $games games $filesProcessed files $failures failures $waitTime wait $pauseTime pause"
+    }
+
 }

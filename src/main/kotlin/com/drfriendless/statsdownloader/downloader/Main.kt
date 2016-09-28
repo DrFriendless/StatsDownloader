@@ -1,5 +1,6 @@
-package com.drfriendless.statsdownloader
+package com.drfriendless.statsdownloader.downloader
 
+import SECONDS_BETWEEN_POPULATES
 import mu.KLogging
 import java.util.*
 
@@ -21,6 +22,18 @@ class Main {
             if (!config.resultDir.exists()) {
                 logger.info("Creating results directory: ${config.resultDir}")
             }
+            initDatabase()
+            val finishTime = System.currentTimeMillis() + SECONDS_BETWEEN_POPULATES * 1000L
+            // TODO - add OR THERE IS NOTHING TO DO
+            while (System.currentTimeMillis() < finishTime) {
+                // TODO
+            }
+            // TODO store record to database.
+            logger.info(dr.toString())
         }
+    }
+
+    fun initDatabase() {
+        // TODO
     }
 }

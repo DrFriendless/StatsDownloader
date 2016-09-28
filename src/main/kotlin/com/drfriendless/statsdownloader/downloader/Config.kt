@@ -1,4 +1,4 @@
-package com.drfriendless.statsdownloader
+package com.drfriendless.statsdownloader.downloader
 
 import java.io.File
 import java.util.*
