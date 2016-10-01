@@ -10,9 +10,10 @@ interface Task {
 }
 
 /** Check that the users match users.txt. */
-class CheckUsersTask(val config: Config): Task {
+class CheckUsersTask(val config: Config, val db: DownloaderDatabase): Task {
     override fun execute() {
-        val users = userNamesFromFile()
+        val usersFromFile = userNamesFromFile()
+        val usersFromDB = userNamesFromDatabase(db)
         ensureUsersInDBFromFile()
         ensureUsersFromFileInDB()
     }
@@ -27,5 +28,10 @@ class CheckUsersTask(val config: Config): Task {
 
     fun userNamesFromFile(): List<String> {
         return File(config.installDir, "usernames.txt").readLines().map { it.trim() }.filter { it.length > 0 }
+    }
+
+    fun userNamesFromDatabase(db: DownloaderDatabase): List<String> {
+        // TODO
+        return listOf()
     }
 }

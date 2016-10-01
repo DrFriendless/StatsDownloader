@@ -1,6 +1,7 @@
 package com.drfriendless.statsdownloader.downloader
 
 import java.io.File
+import java.io.FileInputStream
 import java.util.*
 
 /**
@@ -15,7 +16,7 @@ class Config(filename: String) {
     val logFile = File(installDir, "downloader.log")
 
     init {
-        Config::class.java.getResourceAsStream(filename).use {
+        FileInputStream(filename).use {
             prop.load(it)
         }
     }

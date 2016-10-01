@@ -1,6 +1,7 @@
 package com.drfriendless.statsdownloader.downloader
 
 import SECONDS_BETWEEN_POPULATES
+import com.drfriendless.statsdb.DBConfig
 import mu.KLogging
 import java.util.*
 
@@ -11,7 +12,12 @@ class Main {
     companion object: KLogging()
 
     fun main(args: Array<String>) {
-        val config = Config("downloader.properties")
+        if (args.size != 2) {
+            println("Usage: downloader config.properties db.properties")
+            return
+        }
+        val config = Config(args[0])
+        val dbConfig = DBConfig(args[1])
         val dr = DownloaderRecord()
         dr.record {
             logger.info("Downloader starts at ${Date()}")
@@ -22,11 +28,14 @@ class Main {
             if (!config.resultDir.exists()) {
                 logger.info("Creating results directory: ${config.resultDir}")
             }
-            initDatabaseConnection()
+            val db = initDatabaseConnection(dbConfig)
             val finishTime = System.currentTimeMillis() + SECONDS_BETWEEN_POPULATES * 1000L
-            val tasks = buildTaskList(config)
+            val tasks = buildTaskList(config, db)
             while (System.currentTimeMillis() < finishTime) {
-                if (tasks.isEmpty()) break
+                if (tasks.isEmpty()) {
+                    tasks.addAll(buildTaskList(config, db))
+                    if (tasks.isEmpty()) break
+                }
                 val task = tasks.removeAt(0)
                 task.execute()
             }
@@ -35,13 +44,14 @@ class Main {
         }
     }
 
-    fun initDatabaseConnection() {
+    fun initDatabaseConnection(dbConfig: DBConfig): DownloaderDatabase {
         // TODO - connect to the DB
+        throw RuntimeException()
     }
 
-    fun buildTaskList(config: Config): MutableList<Task> {
+    fun buildTaskList(config: Config, db: DownloaderDatabase): MutableList<Task> {
         val result = mutableListOf<Task>()
-        result.add(CheckUsersTask(config))
+        result.add(CheckUsersTask(config, db))
         return result
     }
 }
