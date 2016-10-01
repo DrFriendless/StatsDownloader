@@ -30,10 +30,10 @@ class Main {
             }
             val db = initDatabaseConnection(dbConfig)
             val finishTime = System.currentTimeMillis() + SECONDS_BETWEEN_POPULATES * 1000L
-            val tasks = buildTaskList(config, db)
+            val tasks = buildTaskList(config, db, true)
             while (System.currentTimeMillis() < finishTime) {
                 if (tasks.isEmpty()) {
-                    tasks.addAll(buildTaskList(config, db))
+                    tasks.addAll(buildTaskList(config, db, false))
                     if (tasks.isEmpty()) break
                 }
                 val task = tasks.removeAt(0)
@@ -48,9 +48,11 @@ class Main {
         return DownloaderDatabase(dbConfig)
     }
 
-    fun buildTaskList(config: Config, db: DownloaderDatabase): MutableList<Task> {
+    fun buildTaskList(config: Config, db: DownloaderDatabase, includeStandard: Boolean): MutableList<Task> {
         val result = mutableListOf<Task>()
-        result.add(CheckUsersTask(config, db))
+        if (includeStandard) {
+            result.add(CheckUsersTask(config, db))
+        }
         return result
     }
 }
