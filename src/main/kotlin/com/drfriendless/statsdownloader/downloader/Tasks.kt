@@ -1,6 +1,9 @@
 package com.drfriendless.statsdownloader.downloader
 
+import com.drfriendless.statsdb.database.*
+import org.jetbrains.exposed.sql.deleteWhere
 import java.io.File
+import java.util.*
 
 /**
  * Created by john on 28/09/16.
@@ -14,16 +17,24 @@ class CheckUsersTask(val config: Config, val db: DownloaderDatabase): Task {
     override fun execute() {
         val usersFromFile = userNamesFromFile()
         val usersFromDB = userNamesFromDatabase(db)
-        ensureUsersInDBFromFile()
-        ensureUsersFromFileInDB()
+        val usersToBeAdded = HashSet(usersFromFile).apply { removeAll(usersFromDB) }
+        val usersToBeDeleted = HashSet(usersFromDB).apply { removeAll(usersFromFile) }
+        ensureUsersInDBFromFile(usersToBeDeleted)
+        ensureUsersFromFileInDB(usersToBeAdded.toList())
     }
 
-    fun ensureUsersInDBFromFile() {
+    fun ensureUsersInDBFromFile(users: Collection<String>) {
         // TODO
     }
 
-    fun ensureUsersFromFileInDB() {
-        // TODO
+    fun ensureUsersFromFileInDB(users: List<String>) {
+        GeekGameTags.deleteWhere { GeekGameTags.geek inList users }
+        History.deleteWhere { History.geek inList users }
+        MonthsPlayed.deleteWhere { MonthsPlayed.geek inList users }
+        GeekGames.deleteWhere { GeekGames.geek inList users }
+        Files.deleteWhere { Files.geek inList users }
+        Geeks.deleteWhere { Geeks.username inList users }
+        Users.deleteWhere { Users.geek inList users }
     }
 
     fun userNamesFromFile(): List<String> {
@@ -31,7 +42,6 @@ class CheckUsersTask(val config: Config, val db: DownloaderDatabase): Task {
     }
 
     fun userNamesFromDatabase(db: DownloaderDatabase): List<String> {
-        // TODO
-        return listOf()
+        return db.getUsers()
     }
 }

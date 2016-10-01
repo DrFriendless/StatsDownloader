@@ -45,8 +45,7 @@ class Main {
     }
 
     fun initDatabaseConnection(dbConfig: DBConfig): DownloaderDatabase {
-        // TODO - connect to the DB
-        throw RuntimeException()
+        return DownloaderDatabase(dbConfig)
     }
 
     fun buildTaskList(config: Config, db: DownloaderDatabase): MutableList<Task> {
