@@ -1,3 +1,5 @@
+package com.drfriendless.statsdownloader.worker
+
 /**
  * Created by john on 25/09/16.
  */

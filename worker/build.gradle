@@ -1,0 +1,42 @@
+apply plugin: 'idea'
+apply plugin: 'kotlin'
+//and standard one
+apply plugin: 'java'
+
+buildscript {
+    ext.kotlin_version = '1.0.4'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+sourceSets {
+    main.java.srcDirs += 'src/main/kotlin'
+    main.resources.srcDirs += 'src/main/resources'
+    test.java.srcDirs += 'src/test/kotlin'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url  "http://dl.bintray.com/kotlin/exposed"
+    }
+    maven {
+        url  "http://dl.bintray.com/wasabifx/wasabifx"
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile 'org.jetbrains.exposed:exposed:0.6.5'
+    compile 'mysql:mysql-connector-java:5.1.6'
+    compile 'io.github.microutils:kotlin-logging:1.3.3'
+    compile 'com.drfriendless:statsdb:0.1'
+    compile 'org.wasabifx:wasabi:0.3.47'
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testCompile 'junit:junit:4.12'
+}
