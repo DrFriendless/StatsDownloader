@@ -1,5 +1,7 @@
 package com.drfriendless.statsdownloader.httpd
 
+import com.drfriendless.statsdb.DBConfig
+import com.drfriendless.statsdb.Database
 import org.slf4j.LoggerFactory
 import org.wasabifx.wasabi.app.AppConfiguration
 import org.wasabifx.wasabi.app.AppServer
@@ -11,7 +13,7 @@ import java.io.File
 /**
  * Created by john on 2/10/16.
  */
-class Thing: Object() {}
+class Thing: Any() {}
 
 fun AppServer.getLogError(path: kotlin.String, vararg handlers: RouteHandler.() -> kotlin.Unit): kotlin.Unit {
     val logger = org.slf4j.LoggerFactory.getLogger("handler")
@@ -29,10 +31,15 @@ fun AppServer.getLogError(path: kotlin.String, vararg handlers: RouteHandler.() 
 }
 
 fun main(args: Array<String>) {
+    if (args.size != 1) {
+        println("Usage: downloader db.properties")
+        return
+    }
     val httpdConfig = AppConfiguration()
     httpdConfig.port = 8084
     val server = AppServer(httpdConfig)
     val logger = LoggerFactory.getLogger("main")
+    val db = Database(DBConfig(args[0]))
     server.getLogError("/", {
 //        response.contentType = "text/html"
 //        response.send(renderPuzzle(puzzle))
@@ -46,13 +53,23 @@ fun main(args: Array<String>) {
             response.returnFileContents("/html/noDownloadLog.html", "text/html")
         }
     })
+    server.getLogError("/worker", {
+        response.returnFileContents("/html/workerChart.html", "text/html")
+    })
+    server.getLogError("/json/timeUsage", {
+        val s = getDownloaderDataLast24HoursJson().toString()
+        response.send(s, "application/json")
+    })
+    server.getLogError("/json/counts", {
+        val s = getDownloaderCountsLast24HoursJson().toString()
+        response.send(s, "application/json")
+    })
     logger.info("Starting Downloader httpd")
     server.start()
 }
 
 fun Response.returnFileContents(path: String, contentType: String) {
     val u = Thing::class.java.getResource(path)
-    println("returnFileContents $path $u")
     if (u != null) {
         val text = u.readText()
         this.contentLength = text.length.toLong()
