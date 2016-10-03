@@ -8,8 +8,9 @@ import java.util.*
  */
 class DownloaderRecord {
     var filesProcessed = 0
-    var waitTime = 0.0
-    var pauseTime = 0.0
+    var waitTime = 0.0F
+    var pauseTime = 0.0F
+    var nothing = 0.0F
     var failures = 0
     var startTime: Date? = null
     var endTime: Date? = null
@@ -22,19 +23,26 @@ class DownloaderRecord {
         endTime = Date()
     }
 
-    fun usersAndGames(u: Int, g: Int) {
+    fun users(u: Int) {
         users = u
+    }
+
+    fun games(g: Int) {
         games = g
     }
 
     fun failure() = failures++
 
     fun wait(howlong: Int) {
-        waitTime += howlong
+        waitTime += howlong / 1000.0F
     }
 
     fun pause(howlong: Int) {
-        pauseTime += howlong
+        pauseTime += howlong / 1000.0F
+    }
+
+    fun nothing(howlong: Int) {
+        nothing += howlong / 1000.0F
     }
 
     fun processFiles(howmany: Int) {
@@ -45,10 +53,10 @@ class DownloaderRecord {
 
     private fun f(d: Date?) = if (d == null) throw RuntimeException() else MessageFormat.format(TIME_FORMAT, d)
 
-    fun toSQL() = "insert into downloader (starttime, endtime, filesprocessed, waittime, pausetime, failures, users, games) values ('${f(startTime)}', '${f(endTime)}', $filesProcessed, $waitTime, $pauseTime, $failures, $users, $games)"
+    // TODO - should do this with Exposed.
+    fun toSQL() = "insert into downloader (starttime, endtime, filesprocessed, waittime, pausetime, nothing, failures, users, games) values ('${f(startTime)}', '${f(endTime)}', $filesProcessed, $waitTime, $pauseTime, $nothing, $failures, $users, $games)"
 
     override fun toString(): String {
-        return "From $startTime to $endTime, $users users $games games $filesProcessed files $failures failures $waitTime wait $pauseTime pause"
+        return "From $startTime to $endTime, $users users $games games $filesProcessed files $failures failures $waitTime wait $pauseTime pause $nothing nothing to do."
     }
-
 }
