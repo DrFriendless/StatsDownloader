@@ -1,0 +1,27 @@
+<html ng-app="access">
+<head>
+    <meta charset="utf-8">
+    <title>Users by Last Access Time</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.js"></script>
+    <script src="/js/access.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/access.css">
+</head>
+<body>
+<div id="access" ng-controller="AccessCtrl as ctrl">
+    <table>
+        <tr ng-repeat="period in ctrl.periods">
+            <td>
+                <H3>Accessed in the {{period.periodName}}</H3>
+                <table>
+                    <tr><td>
+                        <p class="word" ng-repeat="user in period.users">{{user.geek}} ({{user.views}}) </p>
+                    </td></tr>
+                    <tr><td>&nbsp;</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

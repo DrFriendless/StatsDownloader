@@ -91,15 +91,3 @@ private fun processTimeUsage(data: Iterable<ResultRow>): Map<String, Any> {
     return result
 }
 
-fun toJson(obj: Any?): JsonElement {
-    if (obj == null) throw RuntimeException("null")
-    when (obj) {
-        is String -> return obj.toJson()
-        is Int -> return obj.toJson()
-        is Long -> return obj.toJson()
-        is Date -> return obj.time.toJson()
-        is Collection<*> -> return jsonArray(obj.map { toJson(it) })
-        is Map<*,*> -> return jsonObject(obj.entries.map { Pair(it.key.toString(), toJson(it.value)) })
-        else -> throw RuntimeException("Can't convert $obj")
-    }
-}

@@ -1,7 +1,7 @@
 package com.drfriendless.statsdownloader.httpd
 
 import com.drfriendless.statsdb.DBConfig
-import com.drfriendless.statsdb.Database
+import com.drfriendless.statsdb.database.Database
 import org.slf4j.LoggerFactory
 import org.wasabifx.wasabi.app.AppConfiguration
 import org.wasabifx.wasabi.app.AppServer
@@ -56,6 +56,15 @@ fun main(args: Array<String>) {
     server.getLogError("/worker", {
         response.returnFileContents("/html/workerChart.html", "text/html")
     })
+    server.getLogError("/access", {
+        response.returnFileContents("/html/access.html", "text/html")
+    })
+    server.getLogError("/js/access.js", {
+        response.returnFileContents("/js/access.js", "application/javascript")
+    })
+    server.getLogError("/css/access.css", {
+        response.returnFileContents("/css/access.css", "text/css")
+    })
     server.getLogError("/json/timeUsage", {
         val s = getDownloaderDataLast24HoursJson().toString()
         response.send(s, "application/json")
@@ -64,9 +73,14 @@ fun main(args: Array<String>) {
         val s = getDownloaderCountsLast24HoursJson().toString()
         response.send(s, "application/json")
     })
+    server.getLogError("/json/access", {
+        val s = getUsersGroupedByLastAccessJson().toString()
+        response.send(s, "application/json")
+    })
     logger.info("Starting Downloader httpd")
     server.start()
 }
+
 
 fun Response.returnFileContents(path: String, contentType: String) {
     val u = Thing::class.java.getResource(path)
