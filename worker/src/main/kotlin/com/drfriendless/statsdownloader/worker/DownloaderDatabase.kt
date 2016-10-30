@@ -1,7 +1,7 @@
 package com.drfriendless.statsdownloader.worker
 
 import com.drfriendless.statsdb.DBConfig
-import com.drfriendless.statsdb.Database
+import com.drfriendless.statsdb.database.Database
 import com.drfriendless.statsdb.database.Games
 import com.drfriendless.statsdb.database.Users
 import org.jetbrains.exposed.sql.selectAll
@@ -18,3 +18,4 @@ class DownloaderDatabase(config: DBConfig): Database(config) {
         return Games.slice(Games.bggid).selectAll().map { row -> row[Games.bggid] }
     }
 }
+

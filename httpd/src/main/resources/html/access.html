@@ -6,6 +6,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.js"></script>
     <script src="/js/access.js"></script>
     <link rel="stylesheet" type="text/css" href="/css/access.css">
+    <link rel="stylesheet" type="text/css" href="/css/flags.css">
 </head>
 <body>
 <div id="access" ng-controller="AccessCtrl as ctrl">
@@ -15,7 +16,7 @@
                 <H3>Accessed in the {{period.periodName}}</H3>
                 <table>
                     <tr><td>
-                        <p class="word" ng-repeat="user in period.users">{{user.geek}} ({{user.views}}) </p>
+                        <p class="word" ng-repeat="user in period.users"><img src="/images/blank.gif" class="flag flag-cz" alt="Czech Republic" /> {{user.geek}} ({{user.views}}) </p>
                     </td></tr>
                     <tr><td>&nbsp;</td></tr>
                 </table>

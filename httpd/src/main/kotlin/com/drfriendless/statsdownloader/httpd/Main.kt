@@ -41,8 +41,7 @@ fun main(args: Array<String>) {
     val logger = LoggerFactory.getLogger("main")
     val db = Database(DBConfig(args[0]))
     server.getLogError("/", {
-//        response.contentType = "text/html"
-//        response.send(renderPuzzle(puzzle))
+        response.redirect("/worker")
     })
     server.getLogError("/log", {
         val f = File("/home/john/subjects/geek/downloader.log")
@@ -65,6 +64,15 @@ fun main(args: Array<String>) {
     server.getLogError("/css/access.css", {
         response.returnFileContents("/css/access.css", "text/css")
     })
+    server.getLogError("/css/flags.css", {
+        response.returnFileContents("/css/flags.css", "text/css")
+    })
+    server.getLogError("/images/blank.gif", {
+        response.returnBinaryFileContents("/images/blank.gif", "image/gif")
+    })
+    server.getLogError("/images/flags.png", {
+        response.returnBinaryFileContents("/images/flags.png", "image/png")
+    })
     server.getLogError("/json/timeUsage", {
         val s = getDownloaderDataLast24HoursJson().toString()
         response.send(s, "application/json")
@@ -81,13 +89,21 @@ fun main(args: Array<String>) {
     server.start()
 }
 
-
 fun Response.returnFileContents(path: String, contentType: String) {
     val u = Thing::class.java.getResource(path)
     if (u != null) {
         val text = u.readText()
         this.contentLength = text.length.toLong()
         send(text, contentType)
+    } else {
+        setStatus(StatusCodes.NotFound)
+    }
+}
+
+fun Response.returnBinaryFileContents(path: String, contentType: String) {
+    val u = Thing::class.java.getResource(path)
+    if (u != null) {
+        setFileResponseHeaders(u.file, contentType)
     } else {
         setStatus(StatusCodes.NotFound)
     }

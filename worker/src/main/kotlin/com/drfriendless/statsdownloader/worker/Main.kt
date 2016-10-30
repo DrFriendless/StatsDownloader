@@ -16,16 +16,16 @@ fun main(args: Array<String>) {
     val config = Config(args[0])
     val dbConfig = DBConfig(args[1])
     val dr = DownloaderRecord()
+    logger.info("Downloader starts at ${Date()}")
+    if (!config.dbDir.exists()) {
+        logger.info("Creating data directory: ${config.dbDir}")
+    }
+    // TODO - do we need this?
+    if (!config.resultDir.exists()) {
+        logger.info("Creating results directory: ${config.resultDir}")
+    }
+    val db = initDatabaseConnection(dbConfig)
     dr.record {
-        logger.info("Downloader starts at ${Date()}")
-        if (!config.dbDir.exists()) {
-            logger.info("Creating data directory: ${config.dbDir}")
-        }
-        // TODO - do we need this?
-        if (!config.resultDir.exists()) {
-            logger.info("Creating results directory: ${config.resultDir}")
-        }
-        val db = initDatabaseConnection(dbConfig)
         val finishTime = System.currentTimeMillis() + SECONDS_BETWEEN_POPULATES * 1000L
         val tasks = buildTaskList(config, db, dr, true)
         while (System.currentTimeMillis() < finishTime) {
@@ -36,15 +36,20 @@ fun main(args: Array<String>) {
             val task = tasks.removeAt(0)
             task.execute()
         }
-        // TODO store record to database.
-        logger.info(dr.toString())
     }
+    logger.info(dr.toString())
+    dr.insertToDatabase()
 }
 
 fun initDatabaseConnection(dbConfig: DBConfig): DownloaderDatabase {
     return DownloaderDatabase(dbConfig)
 }
 
+/**
+ * Find all the tasks that need to be done.
+ *
+ * @param includeStandard whether to do the normal housekeeping tasks we do every run.
+ */
 fun buildTaskList(config: Config, db: DownloaderDatabase, rec: DownloaderRecord, includeStandard: Boolean): MutableList<Task> {
     val result = mutableListOf<Task>()
     if (includeStandard) {
@@ -52,6 +57,8 @@ fun buildTaskList(config: Config, db: DownloaderDatabase, rec: DownloaderRecord,
         result.add(CheckUsersFileEntries(db))
         result.add(CheckGamesFileEntries(db, rec))
         // TODO add metadata tasks
+        val metadata = readMetadata(config)
+
     }
     return result
 }

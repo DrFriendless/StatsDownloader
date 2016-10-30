@@ -1,5 +1,8 @@
 package com.drfriendless.statsdownloader.worker
 
+import com.drfriendless.statsdb.database.Downloader
+import org.jetbrains.exposed.sql.insert
+import org.joda.time.DateTime
 import java.text.MessageFormat
 import java.util.*
 
@@ -53,8 +56,19 @@ class DownloaderRecord {
 
     private fun f(d: Date?) = if (d == null) throw RuntimeException() else MessageFormat.format(TIME_FORMAT, d)
 
-    // TODO - should do this with Exposed.
-    fun toSQL() = "insert into downloader (starttime, endtime, filesprocessed, waittime, pausetime, nothing, failures, users, games) values ('${f(startTime)}', '${f(endTime)}', $filesProcessed, $waitTime, $pauseTime, $nothing, $failures, $users, $games)"
+    fun insertToDatabase() {
+        Downloader.insert {
+            it[filesprocessed] = this@DownloaderRecord.filesProcessed
+            it[waittime] = this@DownloaderRecord.waitTime
+            it[pausetime] = this@DownloaderRecord.pauseTime
+            it[nothing] = this@DownloaderRecord.nothing
+            it[failures] = this@DownloaderRecord.failures
+            it[starttime] = DateTime(this@DownloaderRecord.startTime)
+            it[endtime] = DateTime(this@DownloaderRecord.endTime)
+            it[users] = this@DownloaderRecord.users
+            it[games] = this@DownloaderRecord.games
+        }
+    }
 
     override fun toString(): String {
         return "From $startTime to $endTime, $users users $games games $filesProcessed files $failures failures $waitTime wait $pauseTime pause $nothing nothing to do."
