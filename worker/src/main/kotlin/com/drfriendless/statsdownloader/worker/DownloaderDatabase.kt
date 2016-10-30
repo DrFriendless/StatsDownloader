@@ -1,9 +1,7 @@
 package com.drfriendless.statsdownloader.worker
 
 import com.drfriendless.statsdb.DBConfig
-import com.drfriendless.statsdb.database.Database
-import com.drfriendless.statsdb.database.Games
-import com.drfriendless.statsdb.database.Users
+import com.drfriendless.statsdb.database.*
 import org.jetbrains.exposed.sql.selectAll
 
 /**
@@ -16,6 +14,26 @@ class DownloaderDatabase(config: DBConfig): Database(config) {
 
     fun getGameIDs(): List<Int> {
         return Games.slice(Games.bggid).selectAll().map { row -> row[Games.bggid] }
+    }
+
+
+    fun readSeriesFromDatabase(): List<SeriesMetadata> {
+        return Series.selectAll().
+                groupBy({ it[Series.name] }, { it[Series.game] }).
+                entries.
+                map { SeriesMetadata(it.key, it.value.toSet()) }
+    }
+
+    fun readMetadataFromDatabase(): List<ExpansionsMetadata> {
+        return Metadata.selectAll().map { row ->
+            val ruleType = metadataRuleFromInt(row[Metadata.ruletype])
+            if (ruleType != null) {
+                ExpansionsMetadata(ruleType, row[Metadata.bggid])
+            } else {
+                logger.error("Invalid metadata entry in database: ${row.data}")
+                null
+            }
+        }.filterNotNull()
     }
 }
 

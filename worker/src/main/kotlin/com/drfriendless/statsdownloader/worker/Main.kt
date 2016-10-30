@@ -57,10 +57,12 @@ fun buildTaskList(config: Config, db: DownloaderDatabase, rec: DownloaderRecord,
         result.add(CheckUsersFileEntries(db))
         result.add(CheckGamesFileEntries(db, rec))
         val metadata = readMetadata(config)
-        result.add(CheckExpansionsTask(metadata.second))
-        result.add(CheckMostSeriesTask(metadata.first))
+        result.add(CheckExpansionsTask(metadata.second, db))
+        result.add(CheckMostSeriesTask(metadata.first, db))
+        result.add(CheckMetadataTasks())
     }
     // TODO - task to update top 50 games series.
     // TODO - task to update extended stats top 100 games series.
+    // TODO - task to update most voters games series.
     return result
 }

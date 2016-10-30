@@ -1,11 +1,10 @@
 package com.drfriendless.statsdownloader.worker
 
-import com.drfriendless.statsdb.database.Metadata
-import com.drfriendless.statsdb.database.Series
+import com.drfriendless.statsdb.database.*
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.select
 import java.io.File
 
 /**
@@ -13,10 +12,6 @@ import java.io.File
  *
  * @author John Farrell
  */
-data class SeriesMetadata(val key: String, val ids: Set<Int>) {}
-
-data class ExpansionsMetadata(val type: MetadataRuleType, val game: Int) {}
-
 fun readMetadata(config: Config): Pair<List<SeriesMetadata>, List<ExpansionsMetadata>> {
     val lines = File(config.installDir, "metadata.txt").readLines()
     val series = mutableListOf<SeriesMetadata>()
@@ -45,34 +40,9 @@ fun readMetadata(config: Config): Pair<List<SeriesMetadata>, List<ExpansionsMeta
     return Pair(series, expansions)
 }
 
-enum class MetadataRuleType(val intKey: Int, val stringKey: String) {
-    EXPANSION(1, "expansion"),
-    BASEGAME(2, "basegame")
-}
-
-private fun metadataRuleFromString(s: String): MetadataRuleType? {
-    return MetadataRuleType.values().firstOrNull { it.stringKey == s }
-}
-
-private fun metadataRuleFromInt(i: Int): MetadataRuleType? {
-    return MetadataRuleType.values().firstOrNull { it.intKey == i }
-}
-
-fun readMetadataFromDatabase(): List<ExpansionsMetadata> {
-    return Metadata.selectAll().map { row ->
-        val ruleType = metadataRuleFromInt(row[Metadata.ruletype])
-        if (ruleType != null) {
-            ExpansionsMetadata(ruleType, row[Metadata.bggid])
-        } else {
-            logger.error("Invalid metadata entry in database: ${row.data}")
-            null
-        }
-    }.filterNotNull()
-}
-
-class CheckExpansionsTask(val fromFile: List<ExpansionsMetadata>): Task {
+class CheckExpansionsTask(val fromFile: List<ExpansionsMetadata>, val db: DownloaderDatabase): Task {
     override fun execute() {
-        val fromDB = readMetadataFromDatabase().toMutableList()
+        val fromDB = db.readMetadataFromDatabase().toMutableList()
         val addFromFile = mutableListOf<ExpansionsMetadata>()
         fromFile.forEach {
             if (fromDB.contains(it)) {
@@ -93,17 +63,10 @@ class CheckExpansionsTask(val fromFile: List<ExpansionsMetadata>): Task {
     }
 }
 
-fun readSeriesFromDatabase(): List<SeriesMetadata> {
-    return Series.selectAll().
-            groupBy({ it[Series.name] }, { it[Series.game] }).
-            entries.
-            map { SeriesMetadata(it.key, it.value.toSet()) }
-}
-
 /** We don't check the top 50 series here, that's more difficult. */
-class CheckMostSeriesTask(val fromFile: List<SeriesMetadata>): Task {
+class CheckMostSeriesTask(val fromFile: List<SeriesMetadata>, val db: DownloaderDatabase): Task {
     override fun execute() {
-        val fromDB = readSeriesFromDatabase().toMutableList()
+        val fromDB = db.readSeriesFromDatabase().toMutableList()
         fromDB.removeAll { it.key in SERIES_NOT_FROM_METADATA  }
         val addFromFile = mutableListOf<SeriesMetadata>()
         fromFile.forEach {
@@ -122,6 +85,45 @@ class CheckMostSeriesTask(val fromFile: List<SeriesMetadata>): Task {
                     it[name] = md.key
                     it[game] = bggid
                 }
+            }
+        }
+    }
+}
+
+class CheckMetadataTasks(): Task {
+    override fun execute() {
+        if (Files.select { Files.processMethod eq PROCESS_TOP50 }.count() == 0) {
+            Files.insert {
+                it[filename] = "top50.html"
+                it[url] = TOP50_URL
+                it[processMethod] = PROCESS_TOP50
+                it[description] = SERIES_TOP_50
+                it[tillNextUpdate] = TILL_NEXT_UPDATE[PROCESS_TOP50]
+            }
+        }
+        if (Files.select { Files.processMethod eq PROCESS_ES_TOP100 }.count() == 0) {
+            Files.insert {
+                it[filename] = "top100.html"
+                it[processMethod] = PROCESS_ES_TOP100
+                it[description] = SERIES_ES_TOP_100
+                it[tillNextUpdate] = TILL_NEXT_UPDATE[PROCESS_ES_TOP100]
+            }
+        }
+        if (Files.select { Files.processMethod eq PROCESS_MOST_VOTERS }.count() == 0) {
+            Files.insert {
+                it[filename] = "mostVoters.html"
+                it[url] = MOST_VOTERS_URL
+                it[processMethod] = PROCESS_MOST_VOTERS
+                it[description] = SERIES_MOST_VOTERS
+                it[tillNextUpdate] = TILL_NEXT_UPDATE[PROCESS_MOST_VOTERS]
+            }
+        }
+        if (Files.select { Files.processMethod eq PROCESS_FRONT_PAGE }.count() == 0) {
+            Files.insert {
+                it[filename] = "mostVoters.html"
+                it[processMethod] = PROCESS_FRONT_PAGE
+                it[description] = "Front Page"
+                it[tillNextUpdate] = TILL_NEXT_UPDATE[PROCESS_FRONT_PAGE]
             }
         }
     }

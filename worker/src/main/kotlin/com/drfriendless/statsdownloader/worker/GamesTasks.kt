@@ -15,12 +15,6 @@ import java.text.MessageFormat
 const val GAME_FILE = "{0}.xml"
 const val GAME_DESCRIPTION = "Game {0}"
 
-fun <A, B, C> doToFirst(f: (A) -> C): (Pair<A,B>) -> Pair<C,B> {
-    return fun(pair: Pair<A,B>): Pair<C,B> {
-        return Pair(f(pair.first), pair.second)
-    }
-}
-
 private fun transaction_addEntriesForGame(id: Int) {
     Files.insert {
         it[Files.filename] = MessageFormat.format(GAME_FILE, id)
@@ -31,24 +25,28 @@ private fun transaction_addEntriesForGame(id: Int) {
     }
 }
 
+data class FileAndURL(val filename: String?, val url: String?) {
+    val gameID = filename?.let {
+        Integer.parseInt(it.substring(0, it.indexOf('.')))
+    }
+}
+
 class CheckGamesFileEntries(val db: DownloaderDatabase, val rec: DownloaderRecord): Task {
     override fun execute() {
         val gameIDs = db.getGameIDs()
         rec.games(gameIDs.size)
-        fun extractGameId(filename: String) = Integer.parseInt(filename.substring(0, filename.indexOf('.')))
         fun gameURLFor(bggID: Int) = MessageFormat.format(GAME_URL, bggID)
-        val allIDsAndURLs: List<Pair<Int, String>> = Files.slice(Files.filename, Files.url).
+        val allIDsAndURLs: List<FileAndURL> = Files.slice(Files.filename, Files.url).
                 select { Files.processMethod eq PROCESS_GAME }.
-                map { row -> Pair(row[Files.filename], row[Files.url]) }.
-                map(doToFirst(::extractGameId))
+                map { row -> FileAndURL(row[Files.filename], row[Files.url]) }
         val badGameURLs = allIDsAndURLs.
-                filter { it.first in gameIDs }.
-                filter { it.second != gameURLFor(it.first) }
-        val unwantedGamesURLs = allIDsAndURLs.filter { it.first !in gameIDs }.map { it.second }
+                filter { it.gameID in gameIDs }.
+                filter { it.gameID != null && it.url != gameURLFor(it.gameID) }
+        val unwantedGamesURLs = allIDsAndURLs.filter { it.gameID !in gameIDs }.map { it.url }
         if (badGameURLs.isNotEmpty()) {
             transaction {
-                Files.deleteWhere { Files.url inList badGameURLs.map { it.second } }
-                badGameURLs.map { it.first }.forEach(::transaction_addEntriesForGame)
+                Files.deleteWhere { Files.url inList badGameURLs.map { it.url } }
+                badGameURLs.map { it.gameID }.filterNotNull().forEach(::transaction_addEntriesForGame)
             }
         }
         if (unwantedGamesURLs.isNotEmpty()) {

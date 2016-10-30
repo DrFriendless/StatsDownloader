@@ -22,19 +22,12 @@ const val PROCESS_PLAYED = "processPlayed"
 const val PROCESS_MARKET = "processMarket"
 const val PROCESS_GAME = "processGame"
 const val PROCESS_TOP50 = "processTop50"
+const val PROCESS_ES_TOP100 = "processESTop100"
+const val PROCESS_MOST_VOTERS = "processMostVoters"
 const val PROCESS_FRONT_PAGE = "processFrontPage"
 const val THREE_DAYS = "72:00:00"
 const val ONE_DAY = "24:00:00"
 const val LONGEST_TIME = "838:00:00"
-
-val TILL_NEXT_UPDATE = mapOf(
-        Pair(PROCESS_COLLECTION, THREE_DAYS),
-        Pair(PROCESS_MARKET, THREE_DAYS),
-        Pair(PROCESS_PLAYED, THREE_DAYS),
-        Pair(PROCESS_GAME, LONGEST_TIME),
-        Pair(PROCESS_TOP50, THREE_DAYS),
-        Pair(PROCESS_FRONT_PAGE, ONE_DAY)
-)
 
 /**
  * transaction_ prefix on the method name means we are already in a transaction.
