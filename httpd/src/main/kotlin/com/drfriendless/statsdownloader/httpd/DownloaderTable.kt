@@ -28,6 +28,12 @@ fun getDownloaderCountsLast24HoursJson(): JsonElement {
     return result
 }
 
+fun getDownloaderFileCountsLast24HoursJson(): JsonElement {
+    val raw = getDownloaderDataLast24Hours(::processFileCounts)
+    val result = toJson(raw)
+    return result
+}
+
 fun getDownloaderDataLast24Hours(process: (Iterable<ResultRow>) -> Map<String, Any>): Map<String, Any> {
     val start = Date(System.currentTimeMillis() - 1000L * 3600 * 24)
     return transaction {
@@ -58,6 +64,28 @@ private fun processCounts(data: Iterable<ResultRow>): Map<String, Any> {
             mapOf(Pair("name", "Files Processed"), Pair("data", filesProcessed)),
             mapOf(Pair("name", "Games"), Pair("data", games)),
             mapOf(Pair("name", "Users"), Pair("data", users))
+    )
+    return result
+}
+
+private fun processFileCounts(data: Iterable<ResultRow>): Map<String, Any> {
+    val result = mutableMapOf<String, Any>()
+    val files1 = mutableListOf<List<Long>>()
+    val files2 = mutableListOf<List<Long>>()
+    val files3 = mutableListOf<List<Long>>()
+    data.forEach { row ->
+        val f1 = row[Downloader.files1].toLong()
+        val f2 = row[Downloader.files2].toLong()
+        val f3 = row[Downloader.files3].toLong()
+        val ts = row[Downloader.starttime].toDate().time
+        files1.add(listOf(ts, f1))
+        files2.add(listOf(ts, f2))
+        files3.add(listOf(ts, f3))
+    }
+    result["series"] = listOf(
+            mapOf(Pair("name", "Priority 1"), Pair("data", files1)),
+            mapOf(Pair("name", "Priority 2"), Pair("data", files2)),
+            mapOf(Pair("name", "Priority 3"), Pair("data", files3))
     )
     return result
 }

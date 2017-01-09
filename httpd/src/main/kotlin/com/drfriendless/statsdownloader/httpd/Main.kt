@@ -81,6 +81,10 @@ fun main(args: Array<String>) {
         val s = getDownloaderCountsLast24HoursJson().toString()
         response.send(s, "application/json")
     })
+    server.getLogError("/json/filecounts", {
+        val s = getDownloaderFileCountsLast24HoursJson().toString()
+        response.send(s, "application/json")
+    })
     server.getLogError("/json/access", {
         val s = getUsersGroupedByLastAccessJson().toString()
         response.send(s, "application/json")
