@@ -9,11 +9,8 @@ import java.util.*
  */
 class Config(filename: String) {
     val prop = Properties()
-    val installDir: String by prop
-    val downloaderDir = File(installDir, "downloader")
-    val dbDir = File(installDir, "db")
-    val resultDir = File(installDir, "static")
-    val logFile = File(installDir, "downloader.log")
+    val usersURL: String by prop
+    val metadataURL: String by prop
 
     init {
         FileInputStream(filename).use {

@@ -1,6 +1,6 @@
 package com.drfriendless.statsdownloader.worker
 
-import mu.KLogging
+import mu.KotlinLogging
 
 /**
  * Created by john on 25/09/16.
@@ -12,9 +12,7 @@ const val SERIES_MOST_VOTERS = "Most Voters"
 
 val SERIES_NOT_FROM_METADATA = listOf(SERIES_TOP_50, SERIES_ES_TOP_100, SERIES_MOST_VOTERS)
 
-object logging: KLogging()
-
-val logger = logging.logger
+val logger = KotlinLogging.logger {}
 
 val TILL_NEXT_UPDATE = mapOf(
         Pair(PROCESS_COLLECTION, THREE_DAYS),

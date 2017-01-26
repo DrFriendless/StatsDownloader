@@ -32,7 +32,7 @@ fun AppServer.getLogError(path: kotlin.String, vararg handlers: RouteHandler.() 
 
 fun main(args: Array<String>) {
     if (args.size != 1) {
-        println("Usage: downloader db.properties")
+        println("Usage: httpd db.properties")
         return
     }
     val httpdConfig = AppConfiguration()

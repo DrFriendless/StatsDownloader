@@ -5,20 +5,23 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
-import java.io.File
+import java.net.URL
 
 /**
  * Tasks about the metadata file.
  *
  * @author John Farrell
  */
+fun metadataFromFile(config: Config): List<String> {
+    return URL(config.metadataURL).readText().split('\n').map(String::trim).filter(String::isNotEmpty)
+}
+
+
 fun readMetadata(config: Config): Pair<List<SeriesMetadata>, List<ExpansionsMetadata>> {
-    val lines = File(config.installDir, "metadata.txt").readLines()
+    val lines = metadataFromFile(config)
     val series = mutableListOf<SeriesMetadata>()
     val expansions = mutableListOf<ExpansionsMetadata>()
-    lines.map { it.trim() }.
-            filterNot { it.startsWith("#") }.
-            filterNot { it.length == 0 }.
+    lines.filterNot { it.startsWith("#") }.
             forEach {
                 if (it.contains(":")) {
                     val fields = it.split(delimiters = ':', limit = 2)
@@ -90,7 +93,7 @@ class CheckMostSeriesTask(val fromFile: List<SeriesMetadata>, val db: Downloader
     }
 }
 
-class CheckMetadataTasks(): Task {
+class CheckMetadataTasks: Task {
     override fun execute() {
         if (Files.select { Files.processMethod eq PROCESS_TOP50 }.count() == 0) {
             Files.insert {

@@ -17,13 +17,7 @@ fun main(args: Array<String>) {
     val dbConfig = DBConfig(args[1])
     val dr = DownloaderRecord()
     logger.info("Downloader starts at ${Date()}")
-    if (!config.dbDir.exists()) {
-        logger.info("Creating data directory: ${config.dbDir}")
-    }
-    // TODO - do we need this?
-    if (!config.resultDir.exists()) {
-        logger.info("Creating results directory: ${config.resultDir}")
-    }
+    ensureDatabaseExists(dbConfig)
     val db = initDatabaseConnection(dbConfig)
     dr.record {
         val finishTime = System.currentTimeMillis() + SECONDS_BETWEEN_POPULATES * 1000L

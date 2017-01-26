@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.File
+import java.net.URL
 import java.text.MessageFormat
 import java.util.*
 
@@ -96,7 +96,7 @@ class CheckUsersTask(val config: Config, val db: DownloaderDatabase, val rec: Do
     }
 
     fun userNamesFromFile(): List<String> {
-        return File(config.installDir, "usernames.txt").readLines().map(String::trim).filter { it.length > 0 }
+        return URL(config.usersURL).readText().split('\n').map(String::trim).filter { it.length > 0 }
     }
 }
 
